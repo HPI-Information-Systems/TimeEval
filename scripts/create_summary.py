@@ -12,7 +12,7 @@ from timeeval import Algorithm, Status, Datasets, Metric
 from timeeval.adapters.docker import SCORES_FILE_NAME as DOCKER_SCORES_FILE_NAME
 from timeeval.constants import RESULTS_CSV, HYPER_PARAMETERS, METRICS_CSV, EXECUTION_LOG, ANOMALY_SCORES_TS
 from timeeval.data_types import ExecutionType
-from timeeval.experiments import Experiment as TimeEvalExperiment
+from timeeval.core.experiments import Experiment as TimeEvalExperiment
 from timeeval.heuristics import inject_heuristic_values
 from timeeval.utils.datasets import load_labels_only
 from timeeval_experiments.algorithm_configurator import AlgorithmConfigurator

@@ -18,24 +18,69 @@ from joblib import Parallel, delayed
 from .adapters.docker import DockerTimeoutError
 from .algorithm import Algorithm
 from .constants import RESULTS_CSV
+from .core.experiments import Experiments, Experiment
+from .core.remote import Remote, RemoteConfiguration
+from .core.times import Times
 from .data_types import TrainingType, InputDimensionality
 from .datasets import Datasets
-from .experiments import Experiments, Experiment
-from .remote import Remote, RemoteConfiguration
 from .resource_constraints import ResourceConstraints
-from .times import Times
 from .utils.encode_params import dumps_params
 from .utils.metrics import Metric, DefaultMetrics
 from .utils.tqdm_joblib import tqdm_joblib
 
 
 class Status(Enum):
+    """Status of an experiment.
+
+    The status of each evaluation experiment can have one of three states: ok, error, or timeout.
+    """
     OK = 0
     ERROR = 1
     TIMEOUT = 2
 
 
 class TimeEval:
+    """
+
+    TimeEval evaluates all algorithms on all datasets per default.
+    You can use the parameters ``skip_invalid_combinations``, ``force_training_type_match``,
+    ``force_dimensionality_match``, and ``experiment_combinations_file`` to control which algorithm runs on which dataset.
+
+    Parameters
+    ----------
+    dataset_mgr : ~timeeval.datasets.datasets.Datasets
+        The dataset manager provides the metadata about the datasets. You can either use a
+        :class:`~timeeval.datasets.dataset_manager.DatasetManager` or a
+        :class:`~timeeval.datasets.multi_dataset_manager.MultiDatasetManager`.
+    datasets : List[Tuple[str, str]]
+        List of dataset IDs consisting of collection name and dataset name to uniquely identify each dataset. The
+        datasets must be known by the ``dataset_mgr``. You can call :func:`~timeeval.datasets.datasets.Datasets.select`
+        on the ``dataset_mgr`` to get a list of dataset IDs.
+    algorithms : List[Algorithm]
+        List of algorithms to evaluate on the datasets.
+        The algorithm specification also contains the hyperparameter configurations that TimeEval will test.
+    results_path : Path
+        Use this parameter to change the path where all evaluation results are stored.
+        If TimeEval is used in distributed mode, this path will be created on **all** nodes!
+    repetitions : int
+        Execute each unique combination of dataset, algorithm, and hyperparameter-setting multiple times.
+        This allows you to use TimeEval to measure runtimes more precisely by aggregating the runtime measurements over
+        multiple repetitions.
+    distributed : bool
+        Run TimeEval in distributed mode.
+        In this case, you **should** also supply a ``remote_config``.
+    remote_config : Optional[RemoteConfiguration]
+    resource_constraints : Optional[ResourceConstraints]
+    disable_progress_bar : bool
+        Don't show the `tqdm <https://tqdm.github.io>`_ progress bars.
+    metrics : Optional[List[Metric]]
+    skip_invalid_combinations : bool
+    force_training_type_match : bool
+    force_dimensionality_match : bool
+    n_jobs : int
+    experiment_combinations_file : Optional[Path]
+    """
+
     RESULT_KEYS = ["algorithm",
                    "collection",
                    "dataset",
@@ -53,8 +98,25 @@ class TimeEval:
                    "repetition",
                    "hyper_params",
                    "hyper_params_id"]
+    """This list contains all the _fixed_ result data frame's column headers.
+    TimeEval dynamically adds the metrics and execution times depending on its configuration.
+    
+    For metrics, their :func:`~timeeval.utils.metrics.Metric.name` will be used as column header, and TimeEval will add
+    the following runtime measurements depending on whether they are applicable to the algorithms in the run or not:
+    
+    - train_preprocess_time: if :func:`~timeeval.algorithm.Algorithm.preprocess` is defined
+    - train_main_time: if the algorithm is semi-supervised or supervised
+    - execute_preprocess_time: if :func:`~timeeval.algorithm.Algorithm.preprocess` is defined
+    - execute_main_time: always
+    - execute_postprocess_time: if :func:`~timeeval.algorithm.Algorithm.postprocess` is defined
+    """
 
     DEFAULT_RESULT_PATH = Path("./results")
+    """Default path for the results.
+    
+    If you don't specify the ``results_path``, TimeEval will store the evaluation results in the folder ``results``
+    within the current working directory.
+    """
 
     def __init__(self,
                  dataset_mgr: Datasets,

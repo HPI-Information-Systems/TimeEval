@@ -3,8 +3,8 @@ from dataclasses import dataclass, asdict
 from typing import Optional, Dict, Callable, Tuple, Any, List
 import numpy as np
 
-from .algorithm import Algorithm
-from .data_types import AlgorithmParameter, ExecutionType
+from ..algorithm import Algorithm
+from ..data_types import AlgorithmParameter, ExecutionType
 
 
 @dataclass

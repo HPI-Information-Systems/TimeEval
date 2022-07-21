@@ -13,13 +13,12 @@ from timeeval import (
     TrainingType,
     InputDimensionality,
     Status,
-    Metric,
     DefaultMetrics,
     ResourceConstraints,
     DatasetManager
 )
 from timeeval.datasets import Dataset, DatasetRecord
-from timeeval.experiments import Experiment, Experiments
+from timeeval.core.experiments import Experiment, Experiments
 from timeeval.utils.hash_dict import hash_dict
 
 

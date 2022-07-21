@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from dask.distributed import SSHCluster
 
-from timeeval.remote import Remote, RemoteConfiguration
+from timeeval.core.remote import Remote, RemoteConfiguration
 
 
 class TestRemote(unittest.TestCase):

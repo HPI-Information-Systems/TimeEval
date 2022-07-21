@@ -9,8 +9,8 @@ import tqdm
 from dask import config as dask_config
 from dask.distributed import Client, SSHCluster
 
-from timeeval.remote_configuration import RemoteConfiguration
-from timeeval.resource_constraints import ResourceConstraints
+from ..remote_configuration import RemoteConfiguration
+from ..resource_constraints import ResourceConstraints
 
 
 class Remote:

@@ -5,18 +5,75 @@ import psutil
 from durations import Duration
 
 MB = 1024 ** 2
+""":math:`1 MB = 2^{20} \\text{Bytes}`
+
+Can be used to set the memory limit.
+
+Examples
+--------
+
+>>> from timeeval.resource_constraints import ResourceConstraints, MB
+>>> ResourceConstraints(task_memory_limit=500 * MB)
+"""
 GB = 1024 ** 3
+""":math:`1 GB = 2^{30} \\text{Bytes}`
+
+Can be used to set the memory limit.
+
+Examples
+--------
+
+>>> from timeeval.resource_constraints import ResourceConstraints, GB
+>>> ResourceConstraints(task_memory_limit=1 * GB)
+"""
 DEFAULT_TASKS_PER_HOST = 1
 DEFAULT_TIMEOUT = Duration("8 hours")
 
 
 @dataclass
 class ResourceConstraints:
-    """
-    **Resource constraints are not supported by all algorithm Adapters!**
+    """Use this class to configure resource constraints and how TimeEval deals with preliminary results.
+
+    .. warning::
+        Resource constraints are just supported by the :class:`~timeeval.adapters.docker.DockerAdapter`!
 
     For docker: Swap is always disabled. Resource constraints are enforced using explicit resource limits on the Docker
     container.
+
+    Parameters
+    ----------
+    tasks_per_host : int
+        Specify, how many evaluation tasks are executed on each host. This setting influences the default memory and
+        CPU limits if :attr:`~timeeval.resource_constraints.ResourceConstraints.task_memory_limit` and
+        :attr:`~timeeval.resource_constraints.ResourceConstraints.task_cpu_limit` are ``None``: the available
+        resources of the node are shared equally between the tasks.
+
+        Because each tasks, in effect, trains or executes a time series anomaly detection algorithm, the tasks are
+        resource-intensive, which means that over-provisioning is not useful and could decrease overall performance. If
+        runtime measurements are taken, **make sure that no resources are shared between the tasks**!
+    task_memory_limit : Optional[int]
+        Specify the maximum allowed memory in Bytes. You can use :const:`~timeeval.resource_constraints.MB` and
+        :const:`~timeeval.resource_constraints.GB` for better readability. This setting limits the available main
+        memory per task to a fixed value.
+    task_cpu_limit : Optional[float]
+        Specify the maximum allowed CPU usage in fractions of CPUs (e.g. 0.25 means: only use 1/4 of a single
+        CPU core). Usually, it is advisable to use whole CPU cores (e.g. 1.0 for 1 CPU core, 2.0 for 2 CPU cores, etc.).
+    train_timeout : Duration
+        Default timeout for training an algorithm. This value can be overridden for each algorithm in its
+        :class:`~timeeval.adapters.docker.DockerAdapter`.
+    execute_timeout : Duration
+        Default timeout for executing an algorithm. This value can be overridden for each algorithm in its
+        :class:`~timeeval.adapters.docker.DockerAdapter`.
+    use_preliminary_model_on_train_timeout : bool
+        If this option is enabled (default), then algorithms can save preliminary models (model checkpoints) to disk and
+        TimeEval will use the last preliminary model if the training step runs into the training timeout. This is
+        especially useful for machine learning algorithms that use an iterative training process (e.g. using SGD). As
+        long as the algorithm implementation stores the best-so-far model after each training epoch, the training must
+        not be limited by the number of epochs but just by the training time.
+    use_preliminary_scores_on_execute_timeout : bool
+        If this option is enabled (default) and an algorithm exceeds the execution timeout, TimeEval will look for any
+        preliminary result. This allows the evaluation of progressive algorithms that output a rough result, refine it
+        over time, and would otherwise run into the execution timeout.
     """
 
     tasks_per_host: int = DEFAULT_TASKS_PER_HOST
@@ -30,9 +87,7 @@ class ResourceConstraints:
     def get_compute_resource_limits(self,
                                     memory_overwrite: Optional[int] = None,
                                     cpu_overwrite: Optional[float] = None) -> Tuple[int, float]:
-        """
-        Calculates the resource constraints for a single task. **Must be called on the node that will execute the
-        task!**
+        """Calculates the resource constraints for a single task.
 
         There are three sources for resource limits (in decreasing priority):
 
@@ -48,9 +103,20 @@ class ResourceConstraints:
         that CPU limit is set based on node CPU count divided by the number of tasks and memory limit is set based on
         total memory of node minus 1 GB (for OS) divided by the number of tasks.
 
-        :param memory_overwrite: if this is set, it will overwrite the memory limit
-        :param cpu_overwrite: if this is set, it will overwrite the CPU limit
-        :return: Tuple of memory and CPU limit.
+        .. attention::
+            Must be called on the node that will execute the task!
+
+        Parameters
+        ----------
+        memory_overwrite: int
+            If this is set, it will overwrite the memory limit.
+        cpu_overwrite : float
+            If this is set, it will overwrite the CPU limit.
+
+        Returns
+        -------
+        memory_limit, cpu_limit : Tuple[int,float]
+            Tuple of memory and CPU limit.
             Memory limit is expressed in Bytes and CPU limit is expressed in fractions of CPUs (e.g. 0.25 means: only
             use 1/4 of a single CPU core).
         """
@@ -75,14 +141,30 @@ class ResourceConstraints:
     def get_train_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
         """Returns the maximum runtime of a training task in seconds.
 
-        :param timeout_overwrite: if this is set, it will overwrite the global timeout
+        Parameters
+        ----------
+        timeout_overwrite : Duration
+            If this is set, it will overwrite the global timeout.
+
+        Returns
+        -------
+        train_timeout : Duration
+            The training timeout with the highest precedence (method overwrite then global configuration).
         """
         return self._get_timeout_with_overwrite(self.train_timeout, timeout_overwrite)
 
     def get_execute_timeout(self, timeout_overwrite: Optional[Duration] = None) -> Duration:
         """Returns the maximum runtime of an execution task in seconds.
 
-        :param timeout_overwrite: if this is set, it will overwrite the global timeout
+        Parameters
+        ----------
+        timeout_overwrite : Duration
+            If this is set, it will overwrite the global timeout.
+
+        Returns
+        -------
+        execute_timeout : Duration
+            The execution timeout with the highest precedence (method overwrite then global configuration).
         """
         return self._get_timeout_with_overwrite(self.execute_timeout, timeout_overwrite)
 
@@ -94,4 +176,5 @@ class ResourceConstraints:
 
     @staticmethod
     def default_constraints() -> 'ResourceConstraints':
+        """Creates a configuration object with the default resource constraints."""
         return ResourceConstraints()

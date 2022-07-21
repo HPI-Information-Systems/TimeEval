@@ -3,8 +3,8 @@ from copy import deepcopy
 from pathlib import Path
 
 from tests.fixtures.algorithms import SupervisedDeviatingFromMean
-from timeeval import Algorithm, TrainingType, InputDimensionality, Metric, DefaultMetrics, DatasetManager
-from timeeval.experiments import Experiments
+from timeeval import Algorithm, TrainingType, InputDimensionality, DefaultMetrics, DatasetManager
+from timeeval.core.experiments import Experiments
 from timeeval.params import FullParameterGrid
 
 

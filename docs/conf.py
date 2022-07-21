@@ -34,8 +34,10 @@ release = timeeval.__version__
 extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
     'myst_parser',
-    'sphinx_rtd_dark_mode'
+    'sphinx_rtd_dark_mode',
+    'sphinx.ext.mathjax'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -72,3 +74,11 @@ napoleon_preprocess_types = True
 
 # -- myst_parser settings ----------------------------------------------------
 myst_heading_anchors = 3
+
+# -- intersphinx settings ----------------------------------------------------
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'dask': ('https://docs.dask.org/en/stable/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None)
+}

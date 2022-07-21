@@ -7,18 +7,18 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from timeeval.algorithm import Algorithm
-from timeeval.constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
-from timeeval.data_types import AlgorithmParameter, TrainingType, InputDimensionality
-from timeeval.datasets import Datasets, Dataset
-from timeeval.heuristics import inject_heuristic_values
-from timeeval.resource_constraints import ResourceConstraints
-from timeeval.times import Times
-from timeeval.utils.datasets import extract_features, load_dataset, load_labels_only
-from timeeval.utils.encode_params import dump_params
-from timeeval.utils.hash_dict import hash_dict
-from timeeval.utils.metrics import Metric, DefaultMetrics
-from timeeval.utils.results_path import generate_experiment_path
+from ..algorithm import Algorithm
+from ..constants import EXECUTION_LOG, ANOMALY_SCORES_TS, METRICS_CSV, HYPER_PARAMETERS
+from ..data_types import AlgorithmParameter, TrainingType, InputDimensionality
+from ..datasets import Datasets, Dataset
+from ..heuristics import inject_heuristic_values
+from ..resource_constraints import ResourceConstraints
+from ..core.times import Times
+from ..utils.datasets import extract_features, load_dataset, load_labels_only
+from ..utils.encode_params import dump_params
+from ..utils.hash_dict import hash_dict
+from ..utils.metrics import Metric, DefaultMetrics
+from ..utils.results_path import generate_experiment_path
 
 
 @dataclass

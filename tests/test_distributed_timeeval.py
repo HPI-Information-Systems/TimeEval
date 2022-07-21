@@ -73,11 +73,11 @@ class TestDistributedTimeEval(unittest.TestCase):
                     f"{[p.cmdline() for p in processes]}"
             )
 
-    @patch("timeeval.remote.Popen")
+    @patch("timeeval.core.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.remote.Client")
-    @patch("timeeval.remote.SSHCluster")
+    @patch("timeeval.core.remote.Client")
+    @patch("timeeval.core.remote.SSHCluster")
     def test_distributed_phases(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
@@ -124,11 +124,11 @@ class TestDistributedTimeEval(unittest.TestCase):
                 (timeeval.results_path / "docker" / hash_dict({}) / "custom" / "dataset.1" / "1").exists()
             )
 
-    @patch("timeeval.remote.Popen")
+    @patch("timeeval.core.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.remote.Client")
-    @patch("timeeval.remote.SSHCluster")
+    @patch("timeeval.core.remote.Client")
+    @patch("timeeval.core.remote.SSHCluster")
     def test_aliases_excluded(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
@@ -151,11 +151,11 @@ class TestDistributedTimeEval(unittest.TestCase):
             self.assertEqual(len(rsync.params), 1)
             self.assertTrue(rsync.params[0], ["rsync", "-a", f"test-host:{tmp_path}/", tmp_path])
 
-    @patch("timeeval.remote.Popen")
+    @patch("timeeval.core.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.remote.Client")
-    @patch("timeeval.remote.SSHCluster")
+    @patch("timeeval.core.remote.Client")
+    @patch("timeeval.core.remote.SSHCluster")
     def test_catches_future_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskExceptionClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)
@@ -175,11 +175,11 @@ class TestDistributedTimeEval(unittest.TestCase):
             timeeval.run()
             self.assertListEqual(timeeval.results[["status", "error_message"]].values[0].tolist(), [Status.ERROR, "ExceptionForTest('test-exception')"])
 
-    @patch("timeeval.remote.Popen")
+    @patch("timeeval.core.remote.Popen")
     @patch("timeeval.timeeval.subprocess.call")
     @patch("timeeval.adapters.docker.docker.from_env")
-    @patch("timeeval.remote.Client")
-    @patch("timeeval.remote.SSHCluster")
+    @patch("timeeval.core.remote.Client")
+    @patch("timeeval.core.remote.SSHCluster")
     def test_catches_future_timeout_exception(self, mock_cluster, mock_client, mock_docker, mock_call, mock_popen):
         mock_client.return_value = MockDaskDockerTimeoutExceptionClient()
         mock_cluster.return_value = MockDaskSSHCluster(workers=2)

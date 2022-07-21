@@ -17,7 +17,7 @@ class TestTimeEvalExceptions(unittest.TestCase):
         self.datasets: Datasets = DatasetManager("./tests/example_data", custom_datasets_file=self.datasets_config)
         self.identity_algorithm = Algorithm(name="test", main=FunctionAdapter.identity(), data_as_file=False)
 
-    @patch("timeeval.experiments.load_dataset")
+    @patch("timeeval.core.experiments.load_dataset")
     def test_wrong_df_shape(self, mock_load):
         df = pd.DataFrame(np.random.rand(10, 2))
         mock_load.side_effect = [df]
